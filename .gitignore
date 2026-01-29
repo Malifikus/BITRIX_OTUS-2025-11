@@ -1,0 +1,14 @@
+# Игнорируем ВСЕ
+*
+
+# Разрешаем ТОЛЬКО:
+!/.gitignore
+!/local/
+!/bitrix/
+!/bitrixsetup.php
+!/restore.php
+!/docker-compose.yml
+
+# Но внутри bitrix/ игнорируем всё кроме templates/
+/bitrix/*
+!/bitrix/templates/
