@@ -1,0 +1,23 @@
+<?php
+$MESS["INTRANET_AUTH_JOIN_TEXT"] = "Присоединяйтесь к команде";
+$MESS["INTRANET_AUTH_USER_DATA_TITLE"] = "Заполните ваши данные";
+$MESS["INTRANET_AUTH_NAME"] = "Имя";
+$MESS["INTRANET_AUTH_NAME_PLACEHOLDER"] = "Иван";
+$MESS["INTRANET_AUTH_LAST_NAME"] = "Фамилия";
+$MESS["INTRANET_AUTH_LAST_NAME_PLACEHOLDER"] = "Иванов";
+$MESS["INTRANET_AUTH_LOGIN"] = "Логин";
+$MESS["INTRANET_AUTH_LOGIN_HINT"] = "Длина логина должна быть не меньше 3 символов";
+$MESS["INTRANET_AUTH_LOGIN_PLACEHOLDER"] = "ivan";
+$MESS["INTRANET_AUTH_CONFIRM"] = "Подтверждение пароля";
+$MESS["INTRANET_AUTH_REQUIRED_FIELD"] = "(обязательное поле)";
+$MESS["INTRANET_AUTH_REGISTER_BUTTON"] = "Зарегистрироваться";
+$MESS["INTRANET_AUTH_CONTINUE_BUTTON"] = "Продолжить";
+$MESS["INTRANET_AUTH_LINK"] = "Войти";
+$MESS["INTRANET_AUTH_PASSWORD"] = "Пароль";
+$MESS["INTRANET_AUTH_PASSWORD_TITLE"] = "Придумайте пароль";
+$MESS["INTRANET_AUTH_EMAIL_SENT"] = "На указанный в форме e-mail было выслано письмо с информацией о подтверждении регистрации";
+$MESS["INTRANET_AUTH_EMAIL"] = "E-mail";
+$MESS["INTRANET_AUTH_EMAIL_PLACEHOLDER"] = "address@mail.ru";
+$MESS["INTRANET_AUTH_CAPTCHA_PROMT"] = "Введите буквы с картинки";
+$MESS["INTRANET_USER_PROPERTIES_TITLE"] = "Дополнительные поля";
+$MESS["INTRANET_AUTH_CHECK_EMAIL"] = "Проверьте почту";
