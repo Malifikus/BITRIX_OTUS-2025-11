@@ -1,0 +1,4 @@
+<? if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
+
+$MESS["COMPANYSEARCH_ACTIVITY_FIELD_INN"] = "ИНН компании";
+$MESS["COMPANYSEARCH_ACTIVITY_FIELD_APIKEY"] = "API-ключ DaData";
