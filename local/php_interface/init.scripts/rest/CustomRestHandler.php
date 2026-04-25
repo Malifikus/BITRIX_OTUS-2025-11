@@ -1,30 +1,31 @@
 <?php
 
-// Регистрируем событие rest
+// Регистрация обработчика событий
 AddEventHandler('rest', 'OnRestServiceBuildDescription', 'RegisterRestMethods');
 
-// Список методов
+define('STORAGE_FILE', $_SERVER['DOCUMENT_ROOT'] . '/local/logs/storage.json');
+
+// Методы
 function RegisterRestMethods()
 {
     return [
-        // Имя своего скоупа
         'my_entity_scope' => [
-            // Создание новой записи
             'my_entity.add' => [
                 'callback' => 'RestAddItem',
                 'options' => []
             ],
-            // Получение записи по ид
             'my_entity.get' => [
                 'callback' => 'RestGetItem',
                 'options' => []
             ],
-            // Обновление существующей записи
+            'my_entity.list' => [
+                'callback' => 'RestListItem',
+                'options' => []
+            ],
             'my_entity.update' => [
                 'callback' => 'RestUpdateItem',
                 'options' => []
             ],
-            // Удаление записи по ид
             'my_entity.delete' => [
                 'callback' => 'RestDeleteItem',
                 'options' => []
@@ -33,101 +34,143 @@ function RegisterRestMethods()
     ];
 }
 
-// Обработчик добавления записи
+// Чтение всех записей
+function GetStorage() {
+    if (!file_exists(STORAGE_FILE)) {
+        return [];
+    }
+    $json = file_get_contents(STORAGE_FILE);
+    return json_decode($json, true) ?: [];
+}
+
+function SaveStorage($data) {
+    $dir = dirname(STORAGE_FILE);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0775, true);
+    }
+    file_put_contents(STORAGE_FILE, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+}
+
+// Создание новой записи
 function RestAddItem($query, $nav, $server)
 {
-    // Логируем входящий запрос
     WriteRestLog('add', $query);
 
-    // Проверяем поле имя
     if (empty($query['NAME'])) {
-        throw new \Bitrix\Rest\RestException('field NAME required');
+        throw new \Bitrix\Rest\RestException('Field NAME is required');
     }
 
-    // Эмулируем сохранение записи
-    $id = rand(1000, 9999);
+    $storage = GetStorage();
+    
+    // Генерация нового ID
+    $ids = array_keys($storage);
+    $newId = empty($ids) ? 1 : max($ids) + 1;
 
-    // Логируем результат операции
-    WriteRestLog('add_ok', ['id' => $id]);
-
-    return ['result' => ['id' => $id]];
-}
-
-// Обработчик получения записи
-function RestGetItem($query, $nav, $server)
-{
-    // Логируем входящий запрос
-    WriteRestLog('get', $query);
-
-    // Проверяем поле идентификатор
-    if (empty($query['ID'])) {
-        throw new \Bitrix\Rest\RestException('field ID required');
-    }
-
-    // Эмулируем данные записи
-    $item = [
-        'ID' => $query['ID'],
-        'NAME' => 'Item ' . $query['ID'],
-        'DATE' => date('Y-m-d H:i:s')
+    // Сохранение данных
+    $storage[$newId] = [
+        'ID' => $newId,
+        'NAME' => $query['NAME'],
+        'DATE_CREATE' => date('Y-m-d H:i:s')
     ];
 
-    // Логируем результат операции
-    WriteRestLog('get_ok', $item);
+    SaveStorage($storage);
 
-    return ['result' => $item];
+    WriteRestLog('add_ok', $storage[$newId]);
+    return ['result' => $storage[$newId]];
 }
 
-// Обработчик обновления записи
+// Получение конкретной записи по ID
+function RestGetItem($query, $nav, $server)
+{
+    WriteRestLog('get', $query);
+
+    if (empty($query['ID'])) {
+        throw new \Bitrix\Rest\RestException('Field ID is required');
+    }
+
+    $id = intval($query['ID']);
+    $storage = GetStorage();
+
+    if (!isset($storage[$id])) {
+        throw new \Bitrix\Rest\RestException('Item not found');
+    }
+
+    WriteRestLog('get_ok', $storage[$id]);
+    return ['result' => $storage[$id]];
+}
+
+// Получение полного списка всех записей
+function RestListItem($query, $nav, $server)
+{
+    WriteRestLog('list', $query);
+    
+    $storage = GetStorage();
+    $items = array_values($storage);
+    
+    WriteRestLog('list_ok', ['count' => count($items)]);
+    return ['result' => $items];
+}
+
+// Обновление существующей записи по ID
 function RestUpdateItem($query, $nav, $server)
 {
-    // Логируем входящий запрос
     WriteRestLog('update', $query);
 
-    // Проверяем поле идентификатор
     if (empty($query['ID'])) {
-        throw new \Bitrix\Rest\RestException('field ID required');
+        throw new \Bitrix\Rest\RestException('Field ID is required');
     }
 
-    // Логируем результат операции
-    WriteRestLog('update_ok', ['status' => 'ok']);
+    $id = intval($query['ID']);
+    $storage = GetStorage();
 
-    return ['result' => ['updated' => true]];
+    if (!isset($storage[$id])) {
+        throw new \Bitrix\Rest\RestException('Item not found');
+    }
+
+    // Обновление полей
+    if (!empty($query['NAME'])) {
+        $storage[$id]['NAME'] = $query['NAME'];
+    }
+    $storage[$id]['DATE_UPDATE'] = date('Y-m-d H:i:s');
+
+    SaveStorage($storage);
+
+    WriteRestLog('update_ok', $storage[$id]);
+    return ['result' => $storage[$id]];
 }
 
-// Обработчик удаления записи
+// Удаление записи из файла по ID
 function RestDeleteItem($query, $nav, $server)
 {
-    // Логируем входящий запрос
     WriteRestLog('delete', $query);
 
-    // Проверяем поле идентификатор
     if (empty($query['ID'])) {
-        throw new \Bitrix\Rest\RestException('field ID required');
+        throw new \Bitrix\Rest\RestException('Field ID is required');
     }
 
-    // Ллогируем результат
-    WriteRestLog('delete_ok', ['status' => 'ok']);
+    $id = intval($query['ID']);
+    $storage = GetStorage();
 
+    if (!isset($storage[$id])) {
+        throw new \Bitrix\Rest\RestException('Item not found');
+    }
+
+    unset($storage[$id]);
+    SaveStorage($storage);
+
+    WriteRestLog('delete_ok', ['id' => $id, 'status' => 'ok']);
     return ['result' => ['deleted' => true]];
 }
 
-// Записываем данные в лог
+// Функция логирования
 function WriteRestLog($action, $data)
 {
-    // Путь к папке логов
     $dir = $_SERVER['DOCUMENT_ROOT'] . '/local/logs';
-
-    // Создаем папку лога
     if (!is_dir($dir)) {
         mkdir($dir, 0775, true);
     }
 
-    // Путь к файлу лога
     $file = $dir . '/rest_dz12.log';
-
-    // Формируем строку сообщения
     $msg = date('[Y-m-d H:i:s] ') . $action . ': ' . json_encode($data) . PHP_EOL;
-
-    // Ддобавляем запись в файл
     file_put_contents($file, $msg, FILE_APPEND);
 }
